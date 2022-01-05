@@ -25,7 +25,7 @@ def generateSchedule(disbursement: DisbursementOut) -> bool:
             'interest': 0,
             'fee': 0,
             'penalty': 0,
-            'status': "New"
+            'status': ''
         },
         1: {
             'collection_date': disbursement.first_date

@@ -1,7 +1,7 @@
 from ..models.schemasOut import DisbursementOut
 from ..models.schemasIn import ScheduleIn
 from dateutil import relativedelta, parser
-from pony.orm import db_session
+from pony.orm import *
 from ..models.model import Model
 from datetime import date, datetime
 import calendar
@@ -36,7 +36,8 @@ def generateSchedule(disbursement: DisbursementOut) -> bool:
 
         if key > 1:
             schedules[key] = {}
-            schedules[key]['collection_date'] = getNextPay(schedules[key - 1]['collection_date'], disbursement.first_date)
+            schedules[key]['collection_date'] = getNextPay(schedules[key - 1]['collection_date'],
+                                                           disbursement.first_date)
         schedules[key]['dis_id'] = disbursement.id
         schedules[key]['cus_id'] = disbursement.cus_id
         schedules[key]['balance'] = disbursement.balance if key != disbursement.duration else 0
@@ -142,44 +143,60 @@ def getPayment(amount, schedule: Model.Schedule):
 
 def updatePay(schedules: Model.Schedule, pay):
     with db_session:
-        try:
-            schedules.status = pay[4]
-            schedules.principal_paid = pay[2]
-            schedules.interest_paid = pay[0]
-            schedules.fee_paid = pay[1]
-            schedules.penalty_paid = 0
-            schedules.collected_date = date.today()
-            if isTheFinalPaid(schedules.dis_id, schedules.sch_no) and pay[4] in (
-                    'Fully Paid On Time', 'Fully Paid But Late'):
-                Model.Disbursement[schedules.dis_id].status = "Closed"
-            Model.SchedulePaid(
-                dis_id=schedules.dis_id,
-                sch_id=schedules.id,
-                invoice=invoice(),
-                paid_date=date.today(),
-                payment_date=schedules.collection_date,
-                interest_paid=pay[5],
-                penalty_paid=0,
-                fee_paid=pay[6],
-                principal_paid=pay[7],
-                status='Close',
-            )
-            return True
-        except ValueError:
-            return False
+        schedules.status = pay[4]
+        schedules.principal_paid = pay[2]
+        schedules.interest_paid = pay[0]
+        schedules.fee_paid = pay[1]
+        schedules.penalty_paid = 0
+        schedules.collected_date = date.today()
+        if isTheFinalPaid(schedules.dis_id, schedules.sch_no) and pay[4] in (
+                'Fully Paid On Time', 'Fully Paid But Late'):
+            Model.Disbursement[schedules.dis_id].status = "Closed"
+        Model.SchedulePaid(
+            dis_id=schedules.dis_id,
+            sch_id=schedules.id,
+            invoice=invoice(),
+            paid_date=date.today(),
+            payment_date=schedules.collection_date,
+            interest_paid=pay[5],
+            penalty_paid=0,
+            fee_paid=pay[6],
+            principal_paid=pay[7],
+            status='Close',
+        )
+        return True
 
 
 def invoice():
     with db_session:
-        schedule = Model.Schedule.select()
+        schedule = Model.SchedulePaid.select()
+
+        if not schedule:
+            return 'Z1-' + getFormatDate() + '0001'
         count = max(s.id for s in schedule)
+
         # count = False
         if not count:
-            return 'paid_0000'
-        return 'paid_' + str(count)
+            return 'Z1-' + getFormatDate() + '0001'
+
+        code = ""
+        size_code = len(str(count))
+        for i in range(0, 4 - size_code):
+            code = code + "0"
+        code += str(count)
+
+        return 'Z1-' + getFormatDate() + code
 
 
 def cFloat(num):
     if num is None:
         return 0
     return num
+
+def getFormatDate():
+    month = str(date.today().month)
+    year = str(date.today().year)
+    if len(month)==1:
+        month = "0"+month
+    year = year[2]+year[3]
+    return month+year+'-'

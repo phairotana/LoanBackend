@@ -5,17 +5,18 @@ from datetime import date, datetime
 
 def getDisbursedCode():
     with db_session:
-        counted = max(c.id for c in Model.Disbursement)
-        if counted is None:
-            counted = 0
-        while True:
-            code = "loan_" + str(counted + 1)
-            cus_code = Model.Customer.get(lambda c: c.cus_code == code)
-            if cus_code is not None:
-                counted += 1
-                continue
-            break
-        return code
+        disbursement = Model.Disbursement.select()
+        if not disbursement:
+            return 'Z1FS-'+getFormatDate()+"0001"
+
+        counted = max(c.id for c in disbursement)
+        code = ""
+        size_code = len(str(counted+1))
+        for i in range(0, 4 - size_code):
+            code = code + "0"
+        code += str(counted+1)
+
+        return 'Z1FS-' + getFormatDate() + code
 
 
 def checkValidation(request):
@@ -293,3 +294,12 @@ def getSchedulePaid(s: Model.SchedulePaid):
             'paid_total': s.paid_total if s.paid_total else 0,
             'status': s.status
         }
+
+
+def getFormatDate():
+    month = str(date.today().month)
+    year = str(date.today().year)
+    if len(month)==1:
+        month = "0"+month
+    year = year[2]+year[3]
+    return month+year+'-'

@@ -1,20 +1,22 @@
 from pony.orm import *
 from ..models.model import Model
+from datetime import date
 
 
 def getCusCode() -> str:
     with db_session:
-        counted = max(c.id for c in Model.Customer)
-        if counted is None:
-            counted = 0
-        while True:
-            code = "cus_" + str(counted + 1)
-            cus_code = Model.Customer.get(lambda c: c.cus_code == code)
-            if cus_code is not None:
-                counted += 1
-                continue
-            break
-        return code
+        customer = Model.Customer.select()
+        if not customer:
+            return 'Z1-CUS-' + getFormatDate() + "0001"
+
+        counted = max(c.id for c in customer)
+        code = ""
+        size_code = len(str(counted + 1))
+        for i in range(0, 4 - size_code):
+            code = code + "0"
+        code += str(counted + 1)
+
+        return 'Z1-CUS-' + getFormatDate() + code
 
 
 def validation(request):
@@ -33,3 +35,10 @@ def validation(request):
     }]
 
 
+def getFormatDate():
+    month = str(date.today().month)
+    year = str(date.today().year)
+    if len(month)==1:
+        month = "0"+month
+    year = year[2]+year[3]
+    return month+year+'-'

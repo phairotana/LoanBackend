@@ -9,6 +9,7 @@ from ..models.schemasOut import CustomerOut
 from ..models.model import Model
 from ..utils import customerUtil
 from datetime import date
+from typing import Optional
 
 
 router = APIRouter()
@@ -60,9 +61,12 @@ def create_customer(request: CustomerIn, current_user: UserIn = Depends(get_curr
 
 
 @router.get('/customer', tags=['Customers'])
-def get_all_customer(current_user: UserIn = Depends(get_current_user)):
+def get_all_customer(name: Optional[str] = None, current_user: UserIn = Depends(get_current_user)):
     with db_session:
-        customer = Model.Customer.select()
+        if name:
+            customer = Model.Customer.select(lambda c: name in (c.first_name + " " + c.last_name))
+        else:
+            customer = Model.Customer.select()
         if not customer:
             return {
                 'success': 0,

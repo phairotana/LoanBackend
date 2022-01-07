@@ -11,7 +11,6 @@ from ..utils import customerUtil
 from datetime import date
 from typing import Optional
 
-
 router = APIRouter()
 
 
@@ -64,7 +63,7 @@ def create_customer(request: CustomerIn, current_user: UserIn = Depends(get_curr
 def get_all_customer(name: Optional[str] = None, current_user: UserIn = Depends(get_current_user)):
     with db_session:
         if name:
-            customer = Model.Customer.select(lambda c: name in (c.first_name + " " + c.last_name))
+            customer = Model.Customer.select(lambda cu: getName(name) in (cu.first_name + " " + cu.last_name).lower())
         else:
             customer = Model.Customer.select()
         if not customer:
@@ -150,3 +149,9 @@ def delete_customer(id: int, current_user: UserIn = Depends(get_current_user)):
             'success': 0,
             'message': f'Customer Id:{id} not found'
         }
+
+
+def getName(name):
+    name = name.lower()
+    # name = name.replace(" ", '')
+    return name

@@ -1,22 +1,27 @@
 from fastapi import APIRouter, Request, status, Depends
-from pony.orm import db_session
-from ..config.auth import get_current_user
-from ..models.schemasIn import UserIn, DisbursementIn
-from ..models.schemasOut import DisbursementOut
-from ..models.model import Model
+from ..models.schemasIn import UserIn, DisbursementIn, CustomerIn
+from ..models.schemasOut import DisbursementOut, CustomerOut
 from ..utils.disbursementUtil import *
 from ..utils.ScheduleUtil import generateSchedule
 from datetime import date
 from ..config.auth import get_current_user
 from ..resource import resource
+from typing import Optional as TypeOptional
+from pony.orm import *
+
 
 router = APIRouter()
 
 
 @router.get('/disbursement', tags=['Disbursement'])
-def all(current_user: UserIn = Depends(get_current_user)):
+def all(q: TypeOptional[str] = None, current_user: UserIn = Depends(get_current_user)):
     with db_session:
-        disbursement = Model.Disbursement.select()
+        if q:
+            customer = Model.Customer.select(lambda cu: q.lower() in (cu.first_name + " " + cu.last_name).lower())
+            customer_id = [c.id for c in customer]
+            disbursement = Model.Disbursement.select(lambda d: q.lower() in d.dis_code.lower() or d.cus_id in customer_id)
+        else:
+            disbursement = Model.Disbursement.select()
         if not disbursement:
             return {
                 'success': 1,

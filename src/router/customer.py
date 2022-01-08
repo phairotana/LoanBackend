@@ -10,6 +10,7 @@ from ..models.model import Model
 from ..utils import customerUtil
 from datetime import date
 from typing import Optional
+from ..utils import imageConvert
 
 router = APIRouter()
 
@@ -21,6 +22,10 @@ def create_customer(request: CustomerIn, current_user: UserIn = Depends(get_curr
             check, validation = customerUtil.validation(request)
             if not check:
                 return validation
+
+            profile_img = ''
+            if request.profile_img:
+                profile_img = imageConvert.base64_pil(request.profile_img)
             customer = Model.Customer(
                 cus_code=customerUtil.getCusCode(),
                 first_name=request.first_name if request.first_name is not None else "",
@@ -38,7 +43,7 @@ def create_customer(request: CustomerIn, current_user: UserIn = Depends(get_curr
                 street_no=request.street_no if request.street_no is not None else "",
                 address=request.address if request.address is not None else "",
                 status="Inactive",
-                profile_img=request.profile_img if request.profile_img is not None else "",
+                profile_img=profile_img,
                 attachment_file=request.attachment_file if request.attachment_file is not None else "",
                 occupation=request.occupation if request.occupation is not None else "",
                 income=request.income if request.income is not None else 0,
@@ -102,6 +107,10 @@ def update_customer(id: int, request: CustomerIn, current_user: UserIn = Depends
         # check, validation = customerUtil.validation(request)
         # if not check:
         #     return validation
+
+        profile_img = customer.profile_img
+        if request.profile_img:
+            profile_img = imageConvert.base64_pil(request.profile_img)
         try:
             customer.first_name = request.first_name if request.first_name is not None else customer.first_name
             customer.last_name = request.last_name if request.last_name is not None else customer.last_name
@@ -118,7 +127,7 @@ def update_customer(id: int, request: CustomerIn, current_user: UserIn = Depends
             customer.street_no = request.street_no if request.street_no is not None else customer.street_no
             customer.address = request.address if request.address is not None else customer.address
             customer.status = request.status if request.status is not None else customer.status
-            customer.profile_img = request.profile_img if request.profile_img is not None else customer.profile_img
+            customer.profile_img = profile_img
             customer.attachment_file = request.attachment_file if request.attachment_file is not None else customer.attachment_file
             customer.occupation = request.occupation if request.occupation is not None else customer.occupation
             customer.income = request.income if request.income is not None else customer.income

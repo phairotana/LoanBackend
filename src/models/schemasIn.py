@@ -10,6 +10,7 @@ class UserIn(BaseModel):
     password: Optional[str]
     dob: Optional[datetime.date]
     gender: Optional[str]
+    profile_img: Optional[str]
     con_password: Optional[str]
     expires_in: Optional[str]
     address: Optional[str]

@@ -149,6 +149,13 @@ def delete_customer(id: int, current_user: UserIn = Depends(get_current_user)):
     with db_session:
         customer = Model.Customer.select(lambda c: c.id == id)
         if customer:
+            cus_id = [c.id for c in customer]
+            disbursement = Model.Disbursement.select(lambda d: d.cus_id in cus_id and d.status == 'Approved')
+            if disbursement:
+                return {
+                    'success': 0,
+                    'message': 'Customer is active'
+                }
             customer.delete()
             return {
                 'success': 1,

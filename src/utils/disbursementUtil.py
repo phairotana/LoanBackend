@@ -106,11 +106,15 @@ def getTotalSche(dis_id):
         total_fee = fee - fee_paid
         total_penalty = 0
 
+        max_sche = max(s.sch_no for s in schedules)
+        end_date = Model.Schedule.select(lambda s: s.sch_no == max_sche and s.dis_id == dis_id).first().collection_date
+
         return {
             'total_principal': total_principal,
             'total_interest': total_interest[0],
             'total_fee': total_fee,
-            'total_penalty': total_penalty
+            'total_penalty': total_penalty,
+            'end_date': end_date
         }
 
 

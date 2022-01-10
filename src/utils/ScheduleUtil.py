@@ -40,7 +40,7 @@ def generateSchedule(disbursement: DisbursementOut) -> bool:
                                                            disbursement.first_date)
         schedules[key]['dis_id'] = disbursement.id
         schedules[key]['cus_id'] = disbursement.cus_id
-        schedules[key]['balance'] = disbursement.balance if key != disbursement.duration else 0
+        schedules[key]['balance'] = 0
         schedules[key]['principal'] = 0 if key != disbursement.duration else disbursement.balance
         schedules[key]['interest'] = interest
         schedules[key]['fee'] = fee

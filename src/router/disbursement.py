@@ -62,6 +62,7 @@ def create(request: DisbursementIn, current_user: UserIn = Depends(get_current_u
                 repayment_method=request.repayment_method if request.repayment_method is not None else "",
                 interest_rate=request.interest_rate if request.interest_rate is not None else 0,
                 balance=request.balance if request.balance is not None else 0,
+                currency=request.currency if request.currency is not None else "",
                 frequency=request.frequency if request.frequency is not None else 0,
                 duration=request.duration if request.duration is not None else 0,
                 fee_rate=request.fee_rate if request.fee_rate is not None else 0,

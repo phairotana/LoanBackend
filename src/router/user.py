@@ -29,11 +29,30 @@ async def read_users_me(current_user: UserIn = Depends(get_current_active_user))
 async def get_all_user(current_user: UserIn = Depends(get_current_active_user)):
     with db_session:
         user = Model.User.select()
-        result = [UserOut.from_orm(u) for u in user]
+        result = [userResource(u, current_user.id) for u in user]
     return {
         'success': 1,
         'data': result
     }
+
+
+def userResource(user: Model.User, current_user):
+    with db_session:
+        active = 0
+        if user.id == current_user:
+            active = 1
+        return {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "dob": user.dob,
+            "gender": user.gender,
+            "expires_in": user.expires_in,
+            "profile_img": user.profile_img,
+            "about_me": user.about_me,
+            "address": user.address,
+            "current": active,
+        }
 
 
 @router.get('/user/{id}', tags=['User'])
@@ -117,7 +136,7 @@ async def create_user(request: UserIn, current_user: UserIn = Depends(get_curren
                 'message': "email is already token"
             }
 
-        profile_img=''
+        profile_img = ''
         if request.profile_img:
             profile_img = imageConvert.base64_pil(request.profile_img)
 

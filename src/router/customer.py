@@ -78,9 +78,48 @@ def get_all_customer(name: Optional[str] = None, current_user: UserIn = Depends(
             }
         return {
             'success': 1,
-            'data': [CustomerOut.from_orm(c) for c in customer]
+            'data': [customerResource(c) for c in customer]
         }
 
+
+def customerResource(customer: Model.Customer):
+    with db_session:
+        active = 0
+        disbursements = Model.Disbursement.select(lambda d: d.cus_id==customer.id)
+        if disbursements:
+            active=1
+        return {
+            "id":customer.id,
+            "cus_code": customer.cus_code,
+            "first_name": customer.first_name,
+            "last_name": customer.last_name,
+            "gender": customer.gender,
+            "dob": customer.dob,
+            "phone": customer.phone,
+            "nationality": customer.nationality,
+            "email": customer.email,
+            "identity_type": customer.identity_type,
+            "identity_number": customer.identity_number,
+            "identity_date": customer.identity_date,
+            "id_card": customer.id_card,
+            "house_no": customer.house_no,
+            "street_no": customer.street_no,
+            "address": customer.address,
+            "status": customer.status,
+            "profile_img": customer.profile_img,
+            # "attachment_file": customer.attachment_file,
+            "occupation": customer.occupation,
+            "income": customer.income,
+            "issue_date": customer.issue_date,
+            "issue_expired": customer.issue_expired,
+            "expense": customer.expense,
+            "updated_by": customer.updated_by,
+            "created_by": customer.created_by,
+            "created_at": customer.created_at,
+            "updated_at": customer.updated_at,
+            # "deleted_at": c,
+            "active": active
+        }
 
 @router.get('/customer/{id}', tags=['Customers'])
 def get_customer_by_id(id: int, current_user: UserIn = Depends(get_current_user)):

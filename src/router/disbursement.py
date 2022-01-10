@@ -9,7 +9,6 @@ from ..resource import resource
 from typing import Optional as TypeOptional
 from pony.orm import *
 
-
 router = APIRouter()
 
 
@@ -19,7 +18,8 @@ def all(q: TypeOptional[str] = None, current_user: UserIn = Depends(get_current_
         if q:
             customer = Model.Customer.select(lambda cu: q.lower() in (cu.first_name + " " + cu.last_name).lower())
             customer_id = [c.id for c in customer]
-            disbursement = Model.Disbursement.select(lambda d: q.lower() in d.dis_code.lower() or d.cus_id in customer_id)
+            disbursement = Model.Disbursement.select(
+                lambda d: q.lower() in d.dis_code.lower() or d.cus_id in customer_id)
         else:
             disbursement = Model.Disbursement.select()
         if not disbursement:
@@ -116,12 +116,18 @@ def update(id: int, request: DisbursementIn, current_user: UserIn = Depends(get_
         }
 
 
-# @router.delete('/disbursement/{id}', tags=['Disbursement'])
+@router.delete('/disbursement/{id}', tags=['Disbursement'])
 def delete(id: int):
     with db_session:
         disbursement = Model.Disbursement.select(lambda d: d.id == id)
         if disbursement:
+            schedules = Model.Schedule.select(lambda s: s.dis_id == id)
+            schedules.delete()
+            schedulesPaid = Model.SchedulePaid.select(lambda s: s.dis_id == id)
+            if schedulesPaid:
+                schedulesPaid.delete()
             disbursement.delete()
+
             return {
                 'success': 1,
                 'message': 'Delete successfully'

@@ -140,10 +140,11 @@ def getChartCollection():
             principal = sum(s.principal for s in schedule if s.principal)
             interest = sum(s.interest for s in schedule if s.interest)
             fee = sum(s.fee for s in schedule if s.fee)
-            data.append({
-                'month': getShortMonth(str(i)),
-                'total': principal + interest + fee
-            })
+            data.append(principal + interest + fee)
+            # data.append({
+            #     'month': getShortMonth(str(i)),
+            #     'total': principal + interest + fee
+            # })
         return data
 
 
@@ -156,10 +157,11 @@ def getChartCollected():
             principal = sum(s.principal_paid for s in schedule_paid if s.principal_paid)
             interest = sum(s.interest_paid for s in schedule_paid if s.interest_paid)
             fee = sum(s.fee_paid for s in schedule_paid if s.fee_paid)
-            data.append({
-                'month': getShortMonth(str(i)),
-                'total': principal + interest + fee
-            })
+            data.append(principal + interest + fee)
+            # data.append({
+            #     'month': getShortMonth(str(i)),
+            #     'total': principal + interest + fee
+            # })
         return data
 
 

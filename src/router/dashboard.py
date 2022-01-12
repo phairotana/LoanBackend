@@ -148,6 +148,7 @@ def getChartCollection():
         return data
 
 
+
 def getChartCollected():
     with db_session:
         data = []

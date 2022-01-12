@@ -28,6 +28,35 @@ def scheduleByLoan(id: int, current_user: UserIn = Depends(get_current_user)):
         }
 
 
+@router.get('/disbursements/form', tags=['Schedule'])
+def loan_all_form(current_user: UserIn = Depends(get_current_user)):
+    with db_session:
+        disbursements = Model.Disbursement.select()
+        if not disbursements:
+            return {
+                'success': 0,
+                'message': 'Disbursement is empty'
+            }
+        data = []
+        for disbursement in disbursements:
+            customers_db = Model.Customer.get(lambda c: c.id == disbursement.cus_id)
+            schedules_db = Model.Schedule.select(lambda s: s.dis_id == disbursement.id).order_by(lambda s: s.id)
+
+            child = {
+                'disbursement': DisbursementOut.from_orm(disbursement),
+                'customer': CustomerOut.from_orm(customers_db),
+                'schedules': [getSchedule(s) for s in schedules_db],
+                'total_sche': getTotalSche(disbursement.id),
+                'pay_now': paynow(disbursement.id),
+                'pay_off': payOff(disbursement.id)
+            }
+            data.append(child)
+        return {
+            'success': 1,
+            'data': data
+        }
+
+
 @router.get('/disbursement/{id}/form', tags=['Schedule'])
 def loan_form(id: int, current_user: UserIn = Depends(get_current_user)):
     with db_session:
@@ -38,7 +67,7 @@ def loan_form(id: int, current_user: UserIn = Depends(get_current_user)):
                 'message': 'Disbursement is not found!'
             }
         customers_db = Model.Customer.get(lambda c: c.id == disbursements_db.cus_id)
-        schedules_db = Model.Schedule.select(lambda s: s.dis_id == disbursements_db.id).order_by(lambda: s.id)
+        schedules_db = Model.Schedule.select(lambda s: s.dis_id == disbursements_db.id).order_by(lambda s: s.id)
 
         data = {
             'disbursement': DisbursementOut.from_orm(disbursements_db),
